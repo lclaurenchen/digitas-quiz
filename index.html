@@ -1,0 +1,657 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Integration Fit Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap">
+<style>
+/* Visual system copied from the team's Integration Cost Calculator (app.css) so the two tools read as one product. */
+:root {
+  color-scheme: dark;
+  --black: #040404; --lime: #e2f205; --orange: #ffa90a; --white: #ffffff;
+  --card: #121212; --well: #0a0a0a; --line: #2a2a2a; --line-2: #3a3a3a;
+  --muted: #a3a3a3; --caps: #ffffff; --grey: #6b6b6b; --ink: #1f1f1f;
+  --head: "Plus Jakarta Sans", "Helvetica Neue", Arial, sans-serif;
+  --body: "Inter", "Helvetica Neue", Arial, sans-serif;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+/* The brand is black in both modes, matching the calculator. */
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --black: #040404; --card: #121212; --white: #ffffff; } }
+:root[data-theme="dark"] { --black: #040404; --card: #121212; --white: #ffffff; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); scroll-behavior: smooth; }
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; background: var(--black); color: var(--white); font: 16px/1.5 var(--body); -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--black); }
+a { color: inherit; }
+h1, h2, h3, p { margin: 0; }
+em { font-style: normal; color: var(--lime); }
+button { font: inherit; }
+img { max-width: 100%; }
+:focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
+[hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
+
+/* header */
+.mast { display: flex; align-items: center; gap: 24px; padding: 18px 40px; background: var(--black); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.mast-logo img { height: 26px; display: block; }
+.mast-title { display: flex; align-items: center; height: 28px; font: 700 18px/1 var(--head); padding-left: 24px; border-left: 1px solid var(--line-2); }
+.mast-link { margin-left: auto; font-size: 14px; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+.mast-link:hover { color: var(--white); }
+
+/* bands */
+.band { color: var(--black); }
+.band-yellow { background: var(--lime); }
+.band-orange { background: var(--orange); }
+.band-inner { max-width: 1280px; margin: 0 auto; padding: 64px 40px 56px; }
+.band h1 { max-width: 1080px; font: 800 60px/1.04 var(--head); letter-spacing: -0.02em; }
+.band p { max-width: 760px; margin-top: 18px; font-size: 18px; color: var(--ink); }
+.band .btn { margin-top: 28px; background: var(--black); color: var(--lime); }
+.tag { display: inline-block; font: 700 12px/1 var(--body); letter-spacing: 0.06em; text-transform: uppercase; background: var(--black); color: var(--orange); border-radius: 6px; padding: 7px 10px; margin-bottom: 22px; }
+.step-result { margin-top: 24px; --lime: var(--orange); }
+
+/* layout */
+.wrap { max-width: 1280px; margin: 0 auto; padding: 40px 40px 72px; }
+.card { background: var(--card); border: 1px solid var(--line); overflow: hidden; }
+.card + .card, .card + .actions { margin-top: 20px; }
+.split { display: flex; flex-wrap: wrap; }
+.split > .pane-main { flex: 999 1 560px; }
+.split > .pane-side { flex: 1 1 360px; border-left: 1px solid var(--line); }
+.pane { min-width: 0; padding: 40px; }
+.pane h2 { font: 800 30px/1.15 var(--head); letter-spacing: -0.01em; color: var(--lime); margin-bottom: 10px; }
+.eyebrow { font: 700 12px/1.3 var(--body); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px; }
+.hint { color: var(--muted); font-size: 15px; margin-bottom: 24px; }
+
+/* what the quiz looks at */
+.counts { padding: 32px 40px 34px; }
+.counts h2 { font: 800 26px/1.1 var(--head); color: var(--lime); margin-bottom: 20px; }
+.counts-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+.count { border-top: 2px solid var(--lime); padding-top: 14px; }
+.count-name { display: block; font: 800 18px/1.2 var(--head); margin-bottom: 8px; }
+.count p { font-size: 15px; color: #e5e5e5; }
+
+/* progress */
+.progress { display: flex; align-items: center; gap: 14px; margin-bottom: 26px; }
+.progress-count { font: 800 15px/1 var(--head); white-space: nowrap; }
+.progress-track { flex: 1; height: 6px; background: #1f1f1f; border-radius: 99px; overflow: hidden; }
+.progress-track i { display: block; height: 100%; background: var(--lime); transition: width .25s ease; }
+
+/* answer options */
+.options { display: grid; gap: 10px; }
+.option { display: flex; flex-direction: column; gap: 4px; text-align: left; background: var(--well); color: var(--white); border: 1px solid var(--line-2); border-radius: 12px; padding: 16px 18px; cursor: pointer; }
+.option:hover { border-color: var(--muted); }
+.option-name { font: 800 17px/1.25 var(--head); }
+.option-text { font-size: 14px; color: var(--muted); }
+.option[aria-pressed="true"] { border-color: var(--lime); box-shadow: inset 0 0 0 1px var(--lime); background: #15160a; }
+.option[aria-pressed="true"] .option-name { color: var(--lime); }
+.practices { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.practice { display: flex; flex-direction: column; gap: 12px; text-align: left; background: var(--well); color: var(--white); border: 1px solid var(--line-2); border-radius: 14px; padding: 18px 16px 20px; cursor: pointer; }
+.practice:hover { border-color: var(--muted); }
+.practice-name { font: 800 17px/1.15 var(--head); }
+.practice-caps { display: flex; flex-direction: column; gap: 5px; font-size: 13px; line-height: 1.3; color: var(--muted); }
+.practice[aria-pressed="true"] { border-color: var(--lime); box-shadow: inset 0 0 0 1px var(--lime); background: #15160a; }
+.practice[aria-pressed="true"] .practice-name { color: var(--lime); }
+.practice[aria-pressed="true"] .practice-caps { color: #d4d4d4; }
+
+.nav { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 30px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; font: 700 14px/1 var(--body); letter-spacing: 0.04em; text-transform: uppercase; text-decoration: none; border-radius: 10px; min-height: 50px; padding: 0 24px; cursor: pointer; border: 1px solid transparent; background: var(--lime); color: var(--black); }
+.btn:hover { filter: brightness(0.92); }
+.btn:disabled { opacity: 0.35; cursor: default; filter: none; }
+.btn-outline { background: transparent; color: var(--white); border-color: var(--line-2); }
+.btn-outline:hover { border-color: var(--white); filter: none; }
+
+/* live lean */
+.live-lede { font-size: 17px; }
+.live-word { font: 800 52px/1 var(--head); letter-spacing: -0.03em; color: var(--lime); margin: 12px 0 22px; }
+.scale { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
+.scale i { height: 10px; border-radius: 3px; background: #1f1f1f; }
+.scale i.on { background: var(--lime); }
+.scale-labels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; font-size: 12px; color: var(--muted); }
+.scale-labels span:nth-child(2) { text-align: center; }
+.scale-labels span:last-child { text-align: right; }
+.live-note { margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 14px; color: #d4d4d4; }
+
+/* result */
+.why .stat { display: flex; align-items: flex-start; gap: 18px; padding: 12px 0; border-top: 1px solid var(--line); }
+.why .stat:first-of-type { border-top: 0; }
+.stat-num { font: 800 24px/1 var(--head); color: var(--lime); min-width: 52px; padding-top: 2px; }
+.stat-cap { font-size: 15px; }
+.stat-cap b { display: block; margin-bottom: 2px; }
+.stat-cap span { color: var(--muted); font-size: 14px; }
+.score-num { font: 800 76px/1 var(--head); letter-spacing: -0.03em; color: var(--lime); margin: 10px 0 22px; }
+.score-num small { font-size: 26px; color: var(--muted); margin-left: 4px; }
+.index-row { display: grid; grid-template-columns: 150px 1fr 44px; align-items: center; gap: 12px; padding: 7px 0; font-size: 14px; }
+.index-row .bar { height: 12px; background: #1f1f1f; border-radius: 4px; overflow: hidden; }
+.index-row .bar i { display: block; height: 100%; background: var(--lime); }
+.index-row .bar i.dim { background: var(--grey); }
+.index-row b { text-align: right; font-weight: 700; }
+
+.match { padding: 36px 40px; }
+.match h2 { font: 800 26px/1.1 var(--head); color: var(--lime); margin-bottom: 8px; }
+.match > p { color: #d4d4d4; max-width: 760px; margin-bottom: 26px; }
+.team { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 12px; margin-bottom: 26px; }
+.team-card { background: var(--well); border: 1px solid var(--line-2); border-radius: 14px; padding: 18px 18px 20px; }
+.team-card.lead { border-color: var(--lime); box-shadow: inset 0 0 0 1px var(--lime); }
+.team-role { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+.team-card .practice-name { display: block; margin-bottom: 10px; }
+.team-card.lead .practice-name { color: var(--lime); font-size: 22px; }
+.match-cases { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.match-case { display: flex; flex-direction: column; border: 1px solid var(--line-2); border-radius: 14px; overflow: hidden; background: var(--well); text-decoration: none; }
+.match-case:hover { border-color: var(--muted); }
+.match-case .img { height: 150px; background: #1a1a1a center / cover no-repeat; }
+.match-case .body { padding: 16px 18px 18px; }
+.match-case .client { font: 700 12px var(--body); letter-spacing: 0.06em; text-transform: uppercase; }
+.match-case .title { display: block; font: 800 18px/1.2 var(--head); margin: 6px 0 8px; }
+.match-case .result { font-size: 14px; color: #d4d4d4; }
+
+.next { padding: 36px 40px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px; }
+.next h2 { font: 800 26px/1.15 var(--head); color: var(--lime); margin-bottom: 8px; }
+.next p { color: #d4d4d4; max-width: 640px; }
+.next-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+
+.rests { padding: 26px 40px; }
+.rests-toggle { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 16px; background: none; border: 0; padding: 4px 0; color: var(--white); cursor: pointer; text-align: left; }
+.rests-toggle > span:first-child { font: 800 24px/1.2 var(--head); }
+.pill-outline { font: 700 12px/1 var(--body); letter-spacing: 0.06em; text-transform: uppercase; border: 1px solid var(--line-2); border-radius: 8px; padding: 8px 12px; background: none; color: var(--white); cursor: pointer; }
+.rules { margin-top: 22px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 48px; font-size: 14px; color: #d4d4d4; }
+.rule { padding: 11px 0; border-top: 1px solid var(--line); }
+.rule b { color: var(--white); }
+
+/* two ways to work */
+.ways { padding: 32px 40px 34px; }
+.ways h2 { font: 800 26px/1.1 var(--head); color: var(--lime); margin-bottom: 8px; }
+.ways > p { color: #d4d4d4; max-width: 760px; margin-bottom: 24px; }
+.ways-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.way { background: var(--well); border: 1px solid var(--line-2); border-radius: 14px; padding: 22px 22px 24px; }
+.way.on { border-color: var(--lime); box-shadow: inset 0 0 0 1px var(--lime); }
+.way-name { display: block; font: 800 22px/1.15 var(--head); margin-bottom: 8px; }
+.way.on .way-name { color: var(--lime); }
+.way-badge { display: inline-block; font: 700 11px/1 var(--body); letter-spacing: 0.06em; text-transform: uppercase; background: var(--lime); color: var(--black); border-radius: 5px; padding: 5px 7px; margin-bottom: 12px; }
+.way p { font-size: 15px; color: #e5e5e5; }
+.way .best { margin-top: 12px; font-size: 14px; color: var(--muted); }
+.proof { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; margin-top: 28px; }
+.proof .stat-num { display: block; font: 800 40px/1 var(--head); color: var(--lime); margin-bottom: 8px; }
+.proof p { font-size: 14px; color: #d4d4d4; }
+.proof small { display: block; margin-top: 4px; font-size: 12px; color: var(--muted); }
+.why-ask { margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--line); }
+.why-ask h3 { font: 800 17px/1.2 var(--head); margin-bottom: 6px; }
+.why-ask p { font-size: 14px; color: #d4d4d4; }
+.team-desc { display: block; font-size: 14px; color: #e5e5e5; margin-bottom: 10px; }
+.team-card.oncall { opacity: 0.75; border-style: dashed; }
+.steps { margin: 18px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; color: #e5e5e5; font-size: 15px; max-width: 640px; }
+.steps li::marker { color: var(--lime); font-weight: 800; }
+.next > div:first-child { flex: 1 1 520px; }
+.foot { border-top: 1px solid var(--line); color: var(--muted); padding: 22px 40px 30px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-size: 13px; }
+
+@media (max-width: 760px) {
+  .counts-grid, .team, .match-cases, .rules, .ways-grid, .proof { grid-template-columns: 1fr; }
+  .practices { grid-template-columns: 1fr; }
+  .band h1 { font-size: 38px; }
+  .split > .pane-side { border-left: 0; border-top: 1px solid var(--line); }
+  .pane, .counts, .match, .next, .rests, .ways { padding: 26px 20px; }
+  .wrap, .band-inner { padding-left: 16px; padding-right: 16px; }
+  .mast { padding: 16px; }
+  .index-row { grid-template-columns: 110px 1fr 40px; }
+  .score-num { font-size: 60px; }
+}
+</style>
+</head>
+<body>
+<header class="mast">
+  <a class="mast-logo" href="#start"><img src="data:image/png;base64,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" alt="Digitas"></a>
+  <span class="mast-title">Integration Fit Quiz</span>
+  <a class="mast-link" id="calc-top" href="#">Go to the cost calculator</a>
+</header>
+
+<main>
+  <section id="start">
+    <div class="band band-yellow">
+      <div class="band-inner">
+        <h1>Specialist depth or connected breadth? Digitas does both.</h1>
+        <p>Digitas runs five specialist practices that can work on their own or as one connected team. Answer 10 questions about the problem you’re solving to see which way of working fits, which team should lead, and past work that backs it up. It takes about five minutes.</p>
+        <a class="btn" href="#quiz" id="start-btn">Start the quiz</a>
+      </div>
+    </div>
+    <div class="wrap">
+      <section class="card ways" aria-labelledby="ways-h">
+        <h2 id="ways-h">One agency, two ways to work</h2>
+        <p>Every Digitas practice is a full specialist team with its own strategists, planners and makers. The same teams can also work from one shared plan when a problem crosses channels. The quiz tells you which one your problem needs.</p>
+        <div class="ways-grid">
+          <div class="way"><span class="way-name">Specialist team</span><p>One practice leads with its own experts, the focus you’d expect from a specialist agency. The rest of Digitas is on call if the work grows, with no new agency search.</p><p class="best">Best for a focused problem measured by one channel.</p></div>
+          <div class="way"><span class="way-name">Connected team</span><p>Several practices work from one plan, one customer view and one set of results, so nothing is lost in handoffs between agencies.</p><p class="best">Best for problems that cross channels and are measured by business results.</p></div>
+        </div>
+        <div class="proof">
+          <div><span class="stat-num">5</span><p>specialist practices: Creative Experiences, Networked Media, CRM &amp; Loyalty, Social Transformation and Total Commerce.</p><small>digitas.com</small></div>
+          <div><span class="stat-num">91%</span><p>client retention in 2024, after Digitas organized its work into named solutions.</p><small>Campaign US, Agency Performance Review 2025</small></div>
+          <div><span class="stat-num">7.3 yrs</span><p>average tenure for integrated agencies, vs. 3.7 years for media-only agencies.</p><small>ANA and 4As, Client-Agency AOR Relationship Tenure, 2025</small></div>
+        </div>
+      </section>
+
+      <div class="card split" id="quiz" style="margin-top:20px">
+        <div class="pane pane-main">
+          <div class="progress"><span class="progress-count" id="progress-count"></span><span class="progress-track"><i id="progress-bar"></i></span></div>
+          <h2 id="q-title"></h2>
+          <p class="hint" id="q-hint"></p>
+          <div id="q-options" role="group"></div>
+          <div class="nav">
+            <button type="button" class="btn btn-outline" id="back">Back</button>
+            <button type="button" class="btn" id="next">Next</button>
+          </div>
+        </div>
+        <aside class="pane pane-side" aria-live="polite">
+          <p class="live-lede">Based on your answers so far, this problem leans</p>
+          <p class="live-word" id="live-word">—</p>
+          <div class="scale" id="live-scale"><i></i><i></i><i></i></div>
+          <div class="scale-labels"><span>Specialist</span><span>Connected</span><span>Integrated</span></div>
+          <div class="why-ask"><h3>Why we ask</h3><p id="why-ask"></p></div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section class="step-result" id="result" hidden>
+    <div class="band band-orange">
+      <div class="band-inner">
+        <span class="tag" id="r-tag"></span>
+        <h1 id="r-headline"></h1>
+        <p id="r-lede"></p>
+      </div>
+    </div>
+    <div class="wrap">
+      <div class="card split">
+        <div class="pane pane-main why">
+          <h2>Why we said this</h2>
+          <p class="hint">The answers that moved your score the most. Points add up to a score out of 20.</p>
+          <div id="r-why"></div>
+        </div>
+        <div class="pane pane-side">
+          <p class="live-lede">Your fit score</p>
+          <p class="score-num" id="r-score"></p>
+          <div class="scale" id="r-scale"><i></i><i></i><i></i></div>
+          <div class="scale-labels"><span>0–7 Specialist</span><span>8–13 Connected</span><span>14–20 Integrated</span></div>
+          <h3 class="eyebrow" style="margin-top:30px">Expertise Index</h3>
+          <div id="r-index"></div>
+        </div>
+      </div>
+
+      <div class="card match">
+        <h2>Your Match Card</h2>
+        <p id="r-match-lede"></p>
+        <div class="team" id="r-team"></div>
+        <div class="match-cases" id="r-cases"></div>
+      </div>
+
+      <div class="card ways">
+        <h2>What you get with Digitas, either way</h2>
+        <p>Your result picks the way of working. The depth behind it is the same.</p>
+        <div class="ways-grid" id="r-ways"></div>
+      </div>
+
+      <div class="card next">
+        <div>
+          <h2 id="r-next-h"></h2>
+          <ol class="steps" id="r-steps"></ol>
+          <p id="r-next-p" style="margin-top:16px"></p>
+        </div>
+        <div class="next-actions">
+          <a class="btn" id="r-calc" href="#" target="_blank" rel="noopener">See what it’s worth</a>
+          <button type="button" class="btn btn-outline" id="retake">Retake the quiz</button>
+        </div>
+      </div>
+
+      <div class="card rests">
+        <button type="button" class="rests-toggle" id="rules-toggle" aria-expanded="false" aria-controls="rules-body">
+          <span>How the score works</span><span class="pill-outline" id="rules-label">Show</span>
+        </button>
+        <div id="rules-body" hidden>
+          <div class="rules">
+            <div class="rule"><b>Practices touched:</b> 1 practice = 0 points, 2 = 2, 3 = 3, 4 or 5 = 4.</div>
+            <div class="rule"><b>Every other scored question:</b> 0, 1 or 2 points, from narrow to cross-discipline.</div>
+            <div class="rule"><b>Fit bands:</b> 0–7 specialist, 8–13 connected, 14–20 integrated.</div>
+            <div class="rule"><b>One practice only:</b> the result can’t be integrated, however high the other answers score.</div>
+            <div class="rule"><b>Expertise Index:</b> 3 points for each practice you pick, plus 1–2 for practices that match your goal and data needs. The highest score leads the Match Card.</div>
+            <div class="rule"><b>Past cases:</b> public Digitas work that shares the most practices with your answers.</div>
+            <div class="rule"><b>Hand-off:</b> the cost calculator opens with your practices, team involvement and time horizon already filled in.</div>
+            <div class="rule"><b>Not scored:</b> your main goal (it only shapes the Expertise Index).</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <span>Student prototype, BUS 365, Emory University. Not an official Digitas tool.</span>
+  <span>Case results as published on digitas.com. Retention: Campaign US (2025). Tenure: ANA and 4As (2025).</span>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+  // Change this if the quiz is hosted inside the calculator's repo (e.g. 'index.html').
+  const CALC_URL = 'https://alexs-127.github.io/digitas-calculator-site/';
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+  // Same five practices and capabilities as the calculator (defaults.js, from digitas.com/what-we-do).
+  const PRACTICES = [
+    { id: 'creative', label: 'Creative Experiences', desc: 'Brand campaigns, content and experiences, from first idea to finished work.', capabilities: ['Campaigns', 'Content', 'Experiential', 'XD', 'Brand Design & Identity'] },
+    { id: 'media', label: 'Networked Media', desc: 'Media planning and buying across channels, with data and analytics built in.', capabilities: ['Media Strategy', 'Planning and Buying', 'Cross-Channel Investments', 'Data & Analytics'] },
+    { id: 'crm', label: 'CRM & Loyalty', desc: 'Loyalty programs, lifecycle journeys and personal messages that keep customers coming back.', capabilities: ['End-to-end CRM', 'Loyalty Strategy', 'Lifecycle Strategy', 'Personalized Messaging'] },
+    { id: 'social', label: 'Social Transformation', desc: 'Social strategy, paid social, creators and communities.', capabilities: ['Social Strategy', 'Paid Social', 'Influencer & Creator', 'Community Management'] },
+    { id: 'commerce', label: 'Total Commerce', desc: 'Turning attention into sales across retail media, marketplaces and direct-to-consumer.', capabilities: ['D2C Strategy', 'Shoppable Media', 'Retail Media', 'Digital Shelf'] },
+  ];
+  const label = (id) => PRACTICES.find((p) => p.id === id).label;
+
+  // Same public case list as the calculator (defaults.js); results as published.
+  const CASES = [
+    { client: 'Crocs', title: 'Global Agency Partner Transition', image: 'https://www.digitas.com/sites/default/files/2024-09/16x9_GIF_Crocs.gif', tags: ['media', 'creative', 'social'], result: '57% over forecasted traffic goal; 20% more cost-efficient cost per landing page view.', url: 'https://www.digitas.com/en-us/work/crocs-global-agency-partner-transition' },
+    { client: 'Haleon', title: 'Target Audiences Not Created, Built', image: 'https://www.digitas.com/sites/default/files/2026-08/HaleonAgent_v1_cut_03-ezgif.com-video-to-gif-converter_0.gif', tags: ['media', 'creative', 'social', 'commerce'], result: '47% higher conversion among GLP-1 users; 2X greater ROAS than previous efforts.', url: 'https://www.digitas.com/en-us/work/target-audiences-not-created-built' },
+    { client: 'NERDS', title: 'A Candy Star Is Born', image: 'https://www.digitas.com/sites/default/files/2024-09/16x9_Still_Nerds.png', tags: ['creative', 'media', 'social', 'commerce'], result: '400% increase in Nerds eComm sales; 200% increase in store displays.', url: 'https://www.digitas.com/en-us/work/candy-star-born' },
+    { client: 'Walmart', title: 'Welcome to Your Walmart', image: 'https://www.digitas.com/sites/default/files/2024-09/16x9_GIF_Carts.gif', tags: ['creative', 'media', 'social', 'commerce'], result: '+7.9B media impressions.', url: 'https://www.digitas.com/en-us/work/walmart-carts' },
+    { client: 'AAA, The Auto Club Group', title: 'Expect Something More', image: 'https://www.digitas.com/sites/default/files/2024-09/16x9_GIF_AAA.gif', tags: ['creative', 'media'], result: '+24% more quotes; +17 point lift in purchase intent.', url: 'https://www.digitas.com/en-us/work/more-just-roadside' },
+    { client: 'Delta Air Lines', title: 'Personalized Videos for SkyMiles Medallion Members', image: '', tags: ['crm', 'creative'], result: 'Email click-through 500% over benchmark (reported by AdExchanger).', url: 'https://www.adexchanger.com/advertiser/delta-takes-off-social-personalized-videos-skymiles-medallion-members/' },
+    { client: 'Delta Air Lines', title: 'CES Wonder Window', image: 'https://www.digitas.com/sites/default/files/2024-09/16x9_Still_Delta.png', tags: ['crm', 'creative'], result: '1K accounts linked; 85M earned media reach.', url: 'https://www.digitas.com/en-us/work/delta-ces' },
+    { client: 'H&M (Digitas UK)', title: 'Search-Led Commerce Transformation', image: '', tags: ['media', 'commerce'], result: '£622M incremental revenue over 5 years, almost twice the target.', url: 'https://www.digitas.co.uk/hm' },
+    { client: 'Sephora', title: 'Get Beauty From People Who Get Beauty', image: 'https://www.digitas.com/sites/default/files/2026-08/ScreenRecording2026-08-27at2.16.23PM-ezgif.com-video-to-gif-converter%20%282%29.gif', tags: ['media', 'social', 'creative', 'commerce'], result: '2X increase in rides to Sephora; +13pts in brand love.', url: 'https://www.digitas.com/en-us/work/get-beauty-people-who-get-beauty' },
+    { client: 'Norwegian Cruise Line', title: 'RBC at Sea', image: 'https://www.digitas.com/sites/default/files/2024-09/16x9_GIF_RBC%20at%20Sea.gif', tags: ['media', 'social', 'creative'], result: '+10pt lift in net likelihood to consider booking.', url: 'https://www.digitas.com/en-us/work/rbc-sea' },
+  ];
+
+  // Questions. pts = fit points; idx = Expertise Index points; calc = values handed to the calculator.
+  const QUESTIONS = [
+    { why: 'Your goal decides which practice should lead. A loyalty goal starts with CRM; a launch usually starts with creative.', id: 'goal', title: 'What are you trying to achieve?', hint: 'Pick the closest one. This shapes which team leads, not your score.', options: [
+      { name: 'Get more people to know and choose our brand', pts: 0, idx: { creative: 2, media: 2 } },
+      { name: 'Turn interest into sales, online or in store', pts: 0, idx: { commerce: 2, media: 1 } },
+      { name: 'Keep customers coming back and spending more', pts: 0, idx: { crm: 2, creative: 1 } },
+      { name: 'Build a following and conversation on social', pts: 0, idx: { social: 2, creative: 1 } },
+      { name: 'Launch a new product or service', pts: 0, idx: { creative: 2, media: 1, social: 1 } },
+    ] },
+    { why: 'Each practice is a specialist team. The more practices a problem needs, the more handoffs there are, and handoffs between separate agencies are where time and money get lost.', id: 'areas', multi: true, title: 'Which areas does this problem touch?', hint: 'Pick every practice the work needs. These are the same five practices the cost calculator uses.' },
+    { why: 'Short projects suit a focused specialist team. Ongoing goals benefit from a partner that keeps learning from the results year after year.', id: 'length', title: 'How long will you be working on this?', options: [
+      { name: 'A few months', text: 'A defined project with an end date', pts: 0, calc: { years: 5 } },
+      { name: 'About a year', text: 'A campaign cycle or annual plan', pts: 1, calc: { years: 5 } },
+      { name: 'It’s an ongoing goal', text: 'Something you’ll keep working on for years', pts: 2, calc: { years: 10 } },
+    ] },
+    { why: 'One team can own a channel metric. Business results like repeat purchases depend on several channels moving together.', id: 'measure', title: 'How will you measure success?', options: [
+      { name: 'One channel metric', text: 'For example clicks, views or follower growth', pts: 0 },
+      { name: 'A few channel metrics', text: 'Several numbers, each owned by a different channel', pts: 1 },
+      { name: 'A business result', text: 'For example sales, repeat purchases or market share', pts: 2 },
+    ] },
+    { why: 'When every channel runs on the same customer data, keeping it in one team avoids gaps and duplicate work.', id: 'data', title: 'Will the work need the same customer data across channels?', options: [
+      { name: 'No', text: 'Each channel can work from its own data', pts: 0 },
+      { name: 'Some of it', text: 'A few channels need to share audiences or results', pts: 1, idx: { media: 1 } },
+      { name: 'Yes, everything runs on it', text: 'Targeting, messaging and measurement all use one customer view', pts: 2, idx: { crm: 1, media: 1 } },
+    ] },
+    { why: 'If channels don’t share one view of the customer yet, building it is part of the job, and that takes data, CRM and media working together.', id: 'view', title: 'Do your channels share one view of the customer today?', options: [
+      { name: 'Yes', text: 'One customer record that every channel uses', pts: 0 },
+      { name: 'Partly', text: 'Some channels are connected, others aren’t', pts: 1 },
+      { name: 'No', text: 'Each channel or agency keeps its own data', pts: 2 },
+    ] },
+    { why: 'Every extra agency adds its own briefs, status calls and approvals for your team to manage.', id: 'agencies', title: 'How many agencies do you manage today?', options: [
+      { name: 'One', pts: 0 },
+      { name: 'Two or three', pts: 1 },
+      { name: 'Four or more', pts: 2 },
+    ] },
+    { why: 'Coordination grows faster than headcount: three teams have three handoffs to manage, four teams have six.', id: 'teams', title: 'How many teams would need to work together on this?', hint: 'Count your own teams and outside partners.', options: [
+      { name: 'One', pts: 0 },
+      { name: 'Two or three', pts: 1 },
+      { name: 'Four or more', pts: 2 },
+    ] },
+    { why: 'Speed on one task favors a specialist team. A long-term outcome favors one plan across channels.', id: 'priority', title: 'What matters most right now?', options: [
+      { name: 'Speed on one narrow task', text: 'Get one thing done fast and well', pts: 0 },
+      { name: 'A balance of both', text: 'Move quickly without losing the bigger picture', pts: 1 },
+      { name: 'The long-term result across channels', text: 'Everything adds up to one outcome', pts: 2 },
+    ] },
+    { why: 'Your answer also sets coordination time in the cost calculator, so the two tools use the same numbers.', id: 'involvement', title: 'How hands-on is your team with each agency?', hint: 'The same three levels the cost calculator uses for coordination time.', options: [
+      { name: 'Light', text: 'A monthly check-in', pts: 0, calc: { coordHours: 8 } },
+      { name: 'Typical', text: 'Weekly status call, briefs and approvals', pts: 1, calc: { coordHours: 20 } },
+      { name: 'Heavy', text: 'In touch most days', pts: 2, calc: { coordHours: 40 } },
+    ] },
+  ];
+
+  const FITS = {
+    specialist: { word: 'Specialist', band: 0, tag: 'Specialist fit',
+      headline: () => `A specialist team fits this problem`,
+      lede: (lead) => `Your problem sits mostly in ${lead}. Digitas’s ${lead} team can take it on as a dedicated specialist, with the rest of the agency on call if the work grows.`,
+      matchLede: (lead) => `${lead} leads as a full specialist team with its own experts. The practices next to it aren’t part of the plan yet, but they’re available without a new agency search if the problem grows.`,
+      nextH: 'Start with a specialist team',
+      steps: ['Meet the lead team and agree on the one result you’ll measure.', 'The team works as a focused specialist, with its own experts and process.', 'If the problem grows into other practices, they join the same plan, with no new review or onboarding.'],
+      nextP: 'Curious what a mix of separate specialist agencies would cost if the problem grows? The calculator compares it.' },
+    connected: { word: 'Connected', band: 1, tag: 'Connected fit',
+      headline: () => `One lead team, with two practices connected to it`,
+      lede: (lead) => `${lead} should lead, but the result depends on other practices working from the same plan. Splitting this across separate agencies would add handoffs.`,
+      matchLede: (lead) => `${lead} leads, with two supporting specialist practices built into the plan from day one. Here are past cases that combined the same practices.`,
+      nextH: 'See what connecting them is worth',
+      steps: ['Meet the lead team and the two supporting practices together.', 'Agree on one plan and one set of results for all three.', 'Each practice brings its specialist depth; the lead team keeps the handoffs between them tight.'],
+      nextP: 'The cost calculator compares hiring a separate specialist for each practice with one partner that connects them. It opens with your answers filled in.' },
+    integrated: { word: 'Integrated', band: 2, tag: 'Integrated fit',
+      headline: () => `This problem needs one connected partner`,
+      lede: () => `Your problem cuts across several practices, runs on shared customer data and is measured by a business result. No single specialist owns that outcome.`,
+      matchLede: (lead) => `${lead} leads one team that brings together the specialist practices your problem touches. Here are past cases where the same practices worked together.`,
+      nextH: 'See what it’s worth in dollars',
+      steps: ['Meet one team that brings together every practice your problem touches.', 'Build one plan, one customer view and one scorecard tied to your business result.', 'Each practice keeps its specialist depth, with no handoffs between separate agencies.'],
+      nextP: 'The cost calculator compares a separate specialist for each practice with one integrated partner, including agency reviews, handovers and coordination time. It opens with your answers filled in.' },
+  };
+
+  const state = { i: 0, answers: {} };
+
+  function areaPts(n) { return n <= 1 ? 0 : n === 2 ? 2 : n === 3 ? 3 : 4; }
+
+  function score() {
+    let total = 0;
+    const why = [];
+    const areas = state.answers.areas || [];
+    if (areas.length) {
+      const p = areaPts(areas.length);
+      total += p;
+      why.push({ pts: p, b: `Your problem touches ${areas.length} practice${areas.length === 1 ? '' : 's'}`, s: areas.map(label).join(', ') });
+    }
+    for (const q of QUESTIONS) {
+      if (q.multi || q.id === 'goal') continue;
+      const a = state.answers[q.id];
+      if (a == null) continue;
+      const o = q.options[a];
+      total += o.pts;
+      why.push({ pts: o.pts, b: q.title, s: `You said: ${o.name}` });
+    }
+    return { total, why };
+  }
+
+  function fitFor(total, areaCount) {
+    let fit = total >= 14 ? 'integrated' : total >= 8 ? 'connected' : 'specialist';
+    if (areaCount === 1 && fit === 'integrated') fit = 'connected';
+    return fit;
+  }
+
+  function expertise() {
+    const s = Object.fromEntries(PRACTICES.map((p) => [p.id, 0]));
+    for (const id of state.answers.areas || []) s[id] += 3;
+    for (const q of QUESTIONS) {
+      const a = state.answers[q.id];
+      if (q.multi || a == null) continue;
+      for (const [k, v] of Object.entries(q.options[a].idx || {})) s[k] += v;
+    }
+    const picked = new Set(state.answers.areas || []);
+    return PRACTICES.map((p, order) => ({ id: p.id, v: s[p.id], picked: picked.has(p.id), order }))
+      .sort((a, b) => b.v - a.v || Number(b.picked) - Number(a.picked) || a.order - b.order);
+  }
+
+  function pickCases(lead, areas) {
+    return CASES
+      .map((c, i) => ({ c, i, s: c.tags.filter((t) => areas.includes(t)).length * 2 + (c.tags.includes(lead) ? 1 : 0) + (c.image ? 0.5 : 0) - (c.tags.filter((t) => !areas.includes(t)).length * 0.25) }))
+      .sort((a, b) => b.s - a.s || a.i - b.i)
+      .filter((x, k, arr) => arr.findIndex((y) => y.c.client === x.c.client) === k)
+      .slice(0, 2)
+      .map((x) => x.c);
+  }
+
+  // ---------- quiz ----------
+  function answered(q) {
+    const a = state.answers[q.id];
+    return q.multi ? Array.isArray(a) && a.length > 0 : a != null;
+  }
+
+  function renderQuestion() {
+    const q = QUESTIONS[state.i];
+    $('progress-count').textContent = `Question ${state.i + 1} of ${QUESTIONS.length}`;
+    $('progress-bar').style.width = `${((state.i + (answered(q) ? 1 : 0)) / QUESTIONS.length) * 100}%`;
+    $('q-title').textContent = q.title;
+    $('why-ask').textContent = q.why;
+    $('q-hint').textContent = q.hint || (q.multi ? '' : 'Pick one.');
+    $('q-hint').hidden = !$('q-hint').textContent;
+    const box = $('q-options');
+    box.setAttribute('aria-label', q.title);
+    if (q.multi) {
+      const sel = state.answers[q.id] || [];
+      box.className = 'practices';
+      box.innerHTML = PRACTICES.map((p) => `<button type="button" class="practice" data-id="${p.id}" aria-pressed="${sel.includes(p.id)}">
+        <span class="practice-name">${esc(p.label)}</span>
+        <span class="practice-caps">${p.capabilities.map((c) => `<span>${esc(c)}</span>`).join('')}</span></button>`).join('');
+    } else {
+      box.className = 'options';
+      box.innerHTML = q.options.map((o, k) => `<button type="button" class="option" data-k="${k}" aria-pressed="${state.answers[q.id] === k}">
+        <span class="option-name">${esc(o.name)}</span>${o.text ? `<span class="option-text">${esc(o.text)}</span>` : ''}</button>`).join('');
+    }
+    $('back').disabled = state.i === 0;
+    $('next').disabled = !answered(q);
+    $('next').textContent = state.i === QUESTIONS.length - 1 ? 'See my result' : 'Next';
+    renderLive();
+  }
+
+  function renderLive() {
+    const { total } = score();
+    const scoredCount = QUESTIONS.filter((q) => q.id !== 'goal' && answered(q)).length;
+    if (scoredCount < 3) {
+      $('live-word').textContent = '—';
+      [...$('live-scale').children].forEach((el) => el.classList.remove('on'));
+      return;
+    }
+    // Scale the running total to a full quiz so the lean is fair mid-way.
+    const answeredScored = QUESTIONS.filter((q) => q.id !== 'goal' && answered(q));
+    const max = answeredScored.reduce((m, q) => m + (q.multi ? 4 : 2), 0) || 1;
+    const fit = fitFor(Math.round((total / max) * 20), (state.answers.areas || []).length);
+    $('live-word').textContent = FITS[fit].word;
+    [...$('live-scale').children].forEach((el, k) => el.classList.toggle('on', k <= FITS[fit].band));
+  }
+
+  $('q-options').addEventListener('click', (e) => {
+    const q = QUESTIONS[state.i];
+    if (q.multi) {
+      const b = e.target.closest('.practice');
+      if (!b) return;
+      const sel = new Set(state.answers[q.id] || []);
+      sel.has(b.dataset.id) ? sel.delete(b.dataset.id) : sel.add(b.dataset.id);
+      state.answers[q.id] = PRACTICES.map((p) => p.id).filter((id) => sel.has(id));
+      if (!state.answers[q.id].length) delete state.answers[q.id];
+    } else {
+      const b = e.target.closest('.option');
+      if (!b) return;
+      state.answers[q.id] = Number(b.dataset.k);
+    }
+    renderQuestion();
+  });
+  $('back').addEventListener('click', () => { if (state.i > 0) { state.i--; renderQuestion(); } });
+  $('next').addEventListener('click', () => {
+    if (!answered(QUESTIONS[state.i])) return;
+    if (state.i < QUESTIONS.length - 1) { state.i++; renderQuestion(); $('quiz').scrollIntoView({ block: 'start' }); }
+    else showResult();
+  });
+
+  // ---------- result ----------
+  function calcLink(fit, areas) {
+    const p = new URLSearchParams();
+    p.set('disciplines', areas.join(','));
+    const merge = {};
+    for (const q of QUESTIONS) {
+      const a = state.answers[q.id];
+      if (!q.multi && a != null) Object.assign(merge, q.options[a].calc || {});
+    }
+    if (merge.coordHours) p.set('coordHours', merge.coordHours);
+    if (merge.years) p.set('years', merge.years);
+    p.set('fit', fit);
+    return `${CALC_URL}?${p.toString()}`;
+  }
+
+  function teamCard(id, role, lead, oncall) {
+    const p = PRACTICES.find((x) => x.id === id);
+    return `<div class="team-card${lead ? ' lead' : ''}${oncall ? ' oncall' : ''}"><span class="team-role">${role}</span>
+      <span class="practice-name">${esc(p.label)}</span>
+      <span class="team-desc">${esc(p.desc)}</span>
+      <span class="practice-caps">${p.capabilities.map((c) => `<span>${esc(c)}</span>`).join('')}</span></div>`;
+  }
+
+  function showResult() {
+    const areas = state.answers.areas || [];
+    const { total, why } = score();
+    const fit = fitFor(total, areas.length);
+    const F = FITS[fit];
+    const idx = expertise();
+    const lead = idx[0].id;
+    const leadLabel = label(lead);
+    const support = idx.slice(1, 3).map((x) => x.id);
+
+    $('r-tag').textContent = F.tag;
+    $('r-headline').textContent = F.headline(leadLabel);
+    $('r-lede').textContent = F.lede(leadLabel);
+    $('r-score').innerHTML = `${total}<small>/20</small>`;
+    [...$('r-scale').children].forEach((el, k) => el.classList.toggle('on', k <= F.band));
+
+    $('r-why').innerHTML = why.filter((w) => w.pts > 0).sort((a, b) => b.pts - a.pts).slice(0, 5)
+      .map((w) => `<div class="stat"><span class="stat-num">+${w.pts}</span><span class="stat-cap"><b>${esc(w.b)}</b><span>${esc(w.s)}</span></span></div>`).join('')
+      || `<div class="stat"><span class="stat-num">0</span><span class="stat-cap"><b>Every answer pointed to a narrow, single-channel problem</b><span>That’s exactly when one focused team works best.</span></span></div>`;
+
+    const top = Math.max(idx[0].v, 1);
+    $('r-index').innerHTML = idx.map((x) => `<div class="index-row"><span>${esc(label(x.id))}</span>
+      <span class="bar"><i class="${x.picked ? '' : 'dim'}" style="width:${Math.round((x.v / top) * 100)}%"></i></span><b>${Math.round((x.v / top) * 100)}</b></div>`).join('');
+
+    $('r-match-lede').textContent = F.matchLede(leadLabel);
+    $('r-team').innerHTML = teamCard(lead, 'Lead team', true) +
+      support.map((id) => fit === 'specialist' ? teamCard(id, 'On call if the work grows', false, true) : teamCard(id, 'Supporting specialist practice', false)).join('');
+
+    $('r-cases').innerHTML = pickCases(lead, areas.length ? areas : [lead]).map((c) => `
+      <a class="match-case" href="${esc(c.url)}" target="_blank" rel="noopener">
+        <span class="img" ${c.image ? `style="background-image:url('${esc(c.image)}')"` : ''}></span>
+        <span class="body"><span class="client">${esc(c.client)}</span><span class="title">${esc(c.title)}</span><span class="result">${esc(c.result)}</span></span>
+      </a>`).join('');
+
+    $('r-next-h').textContent = F.nextH;
+    $('r-next-p').textContent = F.nextP;
+    $('r-steps').innerHTML = F.steps.map((s) => `<li>${esc(s)}</li>`).join('');
+    const spec = fit === 'specialist';
+    $('r-ways').innerHTML = `
+      <div class="way${spec ? ' on' : ''}">${spec ? '<span class="way-badge">Your fit</span>' : ''}<span class="way-name">Specialist depth</span><p>Each practice is a full specialist team, with its own experts, process and track record. You get the focus of a specialist agency.</p></div>
+      <div class="way${spec ? '' : ' on'}">${spec ? '' : '<span class="way-badge">Your fit</span>'}<span class="way-name">Connected breadth</span><p>The same teams can share one plan, one customer view and one set of results. When your problem grows, you add a practice, not a new agency.</p></div>`;
+    const link = calcLink(fit, areas);
+    $('r-calc').href = link;
+    $('r-calc').textContent = fit === 'specialist' ? 'Compare costs anyway' : 'See what it’s worth';
+    $('r-calc').className = fit === 'specialist' ? 'btn btn-outline' : 'btn';
+    $('calc-top').href = link;
+
+    $('result').hidden = false;
+    $('result').scrollIntoView({ block: 'start' });
+  }
+
+  $('retake').addEventListener('click', () => {
+    state.i = 0; state.answers = {};
+    $('result').hidden = true;
+    $('calc-top').href = CALC_URL;
+    renderQuestion();
+    $('quiz').scrollIntoView({ block: 'start' });
+  });
+  $('rules-toggle').addEventListener('click', () => {
+    const open = $('rules-body').hidden;
+    $('rules-body').hidden = !open;
+    $('rules-toggle').setAttribute('aria-expanded', String(open));
+    $('rules-label').textContent = open ? 'Hide' : 'Show';
+  });
+
+  $('calc-top').href = CALC_URL;
+  renderQuestion();
+})();
+</script>
+</body>
+</html>
